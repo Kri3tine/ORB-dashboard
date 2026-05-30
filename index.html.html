@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORB Setup Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:     #060810;
+  --bg1:    #0a0e18;
+  --bg2:    #0f1422;
+  --bg3:    #161d2e;
+  --border: #1e2840;
+  --text:   #d4dff7;
+  --muted:  #556080;
+  --dim:    #2a3550;
+  --green:  #00e5a0;
+  --gdim:   rgba(0,229,160,.1);
+  --red:    #ff4060;
+  --rdim:   rgba(255,64,96,.1);
+  --yellow: #ffd060;
+  --ydim:   rgba(255,208,96,.1);
+  --cyan:   #40b4ff;
+  --cdim:   rgba(64,180,255,.1);
+  --purple: #a080ff;
+  --orange: #ff8040;
+  --head:   'Bebas Neue', sans-serif;
+  --mono:   'DM Mono', monospace;
+  --sans:   'DM Sans', sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;}
+body{
+  min-height:100%;background:var(--bg);
+  color:var(--text);font-family:var(--sans);
+}
+
+/* ── SETUP SCREEN ── */
+.setup{
+  min-height:100vh;display:flex;align-items:center;
+  justify-content:center;flex-direction:column;gap:20px;padding:20px;
+}
+.setup-card{
+  background:var(--bg1);border:1px solid var(--border);
+  border-radius:14px;padding:32px;width:100%;max-width:440px;
+}
+.setup-logo{font-family:var(--head);font-size:40px;color:var(--cyan);letter-spacing:.1em;margin-bottom:4px;}
+.setup-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.7;}
+.field{margin-bottom:14px;}
+.field label{
+  display:block;font-size:10px;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--muted);margin-bottom:5px;
+}
+.field input,.field select{
+  width:100%;background:var(--bg2);border:1px solid var(--border);
+  color:var(--text);font-family:var(--mono);font-size:13px;
+  padding:9px 12px;border-radius:7px;outline:none;transition:border-color .15s;
+}
+.field input:focus,.field select:focus{border-color:var(--cyan);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sbtn{
+  width:100%;padding:11px;border-radius:7px;border:none;cursor:pointer;
+  font-family:var(--head);font-size:18px;letter-spacing:.12em;
+  transition:all .15s;margin-top:4px;
+}
+.sbtn-main{background:var(--cyan);color:#000;}
+.sbtn-main:hover{background:#79ccff;}
+.sbtn-demo{
+  background:var(--bg2);color:var(--yellow);
+  border:1px solid var(--border);font-size:13px;
+  font-family:var(--sans);font-weight:600;
+}
+.sbtn-demo:hover{background:var(--ydim);border-color:var(--yellow);}
+.note{font-size:11px;color:var(--dim);text-align:center;line-height:1.7;}
+.note a{color:var(--cyan);text-decoration:none;}
+
+/* ── APP ── */
+.app{display:none;flex-direction:column;min-height:100vh;}
+
+/* ── HEADER ── */
+.header{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 16px;background:var(--bg1);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-family:var(--head);font-size:22px;color:var(--cyan);letter-spacing:.1em;}
+.h-sym{
+  font-family:var(--mono);font-size:14px;font-weight:500;
+  background:var(--bg2);border:1px solid var(--border);
+  padding:3px 10px;border-radius:5px;
+}
+.h-price{font-family:var(--mono);font-size:20px;font-weight:500;transition:color .2s;}
+.h-price.up{color:var(--green);}
+.h-price.dn{color:var(--red);}
+.h-chg{font-family:var(--mono);font-size:12px;}
+.h-chg.up{color:var(--green);}
+.h-chg.dn{color:var(--red);}
+.hspacer{flex:1;}
+.live-pill{
+  display:flex;align-items:center;gap:5px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:4px 10px;
+}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--dim);}
+.ldot.on{background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 2s infinite;}
+.ldot.err{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.2;}}
+.ltxt{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.clk{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.hbtn{
+  padding:4px 12px;border-radius:5px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-size:11px;cursor:pointer;
+}
+.hbtn:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* ── GRID ── */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:12px;padding:14px;
+  align-items:start;
+}
+
+/* ── CARD ── */
+.card{
+  background:var(--bg1);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+}
+.card.full{grid-column:1/-1;}
+.chdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;background:var(--bg2);border-bottom:1px solid var(--border);
+}
+.ctitle{
+  font-family:var(--head);font-size:15px;letter-spacing:.08em;color:var(--muted);
+}
+.cbadge{
+  font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;
+}
+.bg{background:var(--gdim);color:var(--green);border:1px solid rgba(0,229,160,.2);}
+.br{background:var(--rdim);color:var(--red);  border:1px solid rgba(255,64,96,.2);}
+.by{background:var(--ydim);color:var(--yellow);border:1px solid rgba(255,208,96,.2);}
+.bc{background:var(--cdim);color:var(--cyan);  border:1px solid rgba(64,180,255,.2);}
+.bd{background:var(--bg3); color:var(--muted); border:1px solid var(--border);}
+.cbody{padding:12px 14px;}
+
+/* action */
+.action{
+  border-radius:7px;padding:12px 14px;
+  border-left:3px solid var(--border);background:var(--bg2);
+}
+.action.go   {border-color:var(--green);background:var(--gdim);}
+.action.wait {border-color:var(--yellow);background:var(--ydim);}
+.action.watch{border-color:var(--cyan);background:var(--cdim);}
+.action.stop {border-color:var(--red);background:var(--rdim);}
+.albl{
+  font-family:var(--head);font-size:16px;letter-spacing:.1em;
+  margin-bottom:5px;
+}
+.action.go    .albl{color:var(--green);}
+.action.wait  .albl{color:var(--yellow);}
+.action.watch .albl{color:var(--cyan);}
+.action.stop  .albl{color:var(--red);}
+.atxt{font-size:12px;color:var(--text);line-height:1.7;}
+
+/* entry guide */
+.eguide{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:6px;margin-top:10px;
+}
+.eg{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;padding:8px;text-align:center;
+}
+.eg.rec{background:var(--cdim);border-color:var(--cyan);}
+.eg-name{font-size:10px;font-weight:600;margin-bottom:3px;}
+.eg.rec .eg-name{color:var(--cyan);}
+.eg-desc{font-size:10px;color:var(--muted);line-height:1.4;}
+
+/* data rows */
+.drow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;border-bottom:1px solid var(--dim);
+}
+.drow:last-child{border:none;}
+.dl{font-size:11px;color:var(--muted);}
+.dv{font-family:var(--mono);font-size:11px;font-weight:500;}
+
+/* ORB boxes */
+.orbgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.obox{
+  border:1px solid var(--border);border-radius:7px;
+  padding:10px 8px;text-align:center;
+  transition:all .3s;position:relative;overflow:hidden;
+}
+.obox::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.o15::after{background:var(--cyan);}
+.o30::after{background:var(--purple);}
+.o60::after{background:var(--orange);}
+.obox.bull{background:var(--gdim);border-color:var(--green);}
+.obox.bear{background:var(--rdim);border-color:var(--red);}
+.obox.tapped{background:var(--ydim);border-color:var(--yellow);}
+.otf{font-size:10px;font-weight:700;letter-spacing:.08em;margin-bottom:4px;}
+.o15 .otf{color:var(--cyan);}
+.o30 .otf{color:var(--purple);}
+.o60 .otf{color:var(--orange);}
+.orange{font-family:var(--mono);font-size:10px;color:var(--text);margin-bottom:4px;}
+.ost{font-size:8px;font-weight:700;text-transform:uppercase;padding:2px 5px;border-radius:3px;}
+.sb{color:var(--muted);background:var(--bg3);}
+.sw{color:var(--yellow);background:var(--ydim);animation:blk 1.2s infinite;}
+.st{color:var(--yellow);background:var(--ydim);animation:blk .7s infinite;}
+.sf{color:var(--green);background:var(--gdim);}
+@keyframes blk{0%,100%{opacity:1;}50%{opacity:.25;}}
+
+/* TF trend */
+.tfgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.tfc{
+  border:1px solid var(--border);border-radius:6px;
+  padding:8px 6px;text-align:center;transition:all .3s;
+}
+.tfc.bull{background:var(--gdim);border-color:var(--green);}
+.tfc.bear{background:var(--rdim);border-color:var(--red);}
+.tflbl{font-size:9px;color:var(--muted);font-weight:600;letter-spacing:.06em;margin-bottom:3px;}
+.tfv{font-family:var(--mono);font-size:11px;font-weight:700;}
+.tfc.bull .tfv{color:var(--green);}
+.tfc.bear .tfv{color:var(--red);}
+.tfc.neut .tfv{color:var(--muted);}
+
+/* signal log */
+.sigwrap{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;}
+.sitem{
+  display:flex;align-items:flex-start;gap:8px;
+  border-radius:5px;padding:7px 9px;
+  border-left:2px solid var(--border);
+}
+.sitem.long {border-color:var(--green);background:var(--gdim);}
+.sitem.short{border-color:var(--red);  background:var(--rdim);}
+.sdir{font-family:var(--mono);font-size:10px;font-weight:700;min-width:44px;}
+.sdir.long {color:var(--green);}
+.sdir.short{color:var(--red);}
+.sinf{flex:1;font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.8;}
+.sinf b{color:var(--text);}
+.st2{font-size:8px;color:var(--dim);}
+.nosig{font-size:11px;color:var(--dim);text-align:center;padding:14px 0;}
+
+/* toast */
+.toasts{position:fixed;top:65px;right:14px;z-index:9000;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.toast{
+  background:var(--bg1);border:1px solid var(--border);border-radius:8px;
+  padding:11px 13px;min-width:220px;max-width:270px;
+  box-shadow:0 8px 24px rgba(0,0,0,.6);pointer-events:all;
+  animation:tin .25s ease;
+}
+@keyframes tin{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+.toast.long {border-left:3px solid var(--green);}
+.toast.short{border-left:3px solid var(--red);}
+.ttitle{font-family:var(--head);font-size:14px;letter-spacing:.06em;margin-bottom:3px;}
+.toast.long  .ttitle{color:var(--green);}
+.toast.short .ttitle{color:var(--red);}
+.tbody{font-size:10px;color:var(--muted);line-height:1.7;font-family:var(--mono);}
+.tbody b{color:var(--text);}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div class="setup" id="setup">
+  <div class="setup-card">
+    <div class="setup-logo">ORB DASHBOARD</div>
+    <div class="setup-sub">
+      ORB Tap & Go · Chamilleia 4-Step · Supply & Demand · Multi-TF Trend<br>
+      No chart. Just the signals and the rules.
+    </div>
+    <div class="field">
+      <label>Polygon.io API Key — <a href="https://polygon.io" target="_blank">get free key</a></label>
+      <input type="password" id="apiIn" placeholder="Paste key here (free at polygon.io)..." />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Symbol</label>
+        <input type="text" id="symIn" value="TSLA" maxlength="6" style="text-transform:uppercase;" />
+      </div>
+      <div class="field">
+        <label>R:R Target</label>
+        <input type="number" id="rrIn" value="2" min="0.5" step="0.5" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Volume filter</label>
+        <select id="volIn">
+          <option value="0">Off</option>
+          <option value="1.5" selected>1.5x avg</option>
+          <option value="2.0">2.0x avg</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Poll every (sec)</label>
+        <input type="number" id="pollIn" value="10" min="5" max="60" />
+      </div>
+    </div>
+    <button class="sbtn sbtn-main" onclick="launch(false)">LAUNCH DASHBOARD</button>
+    <button class="sbtn sbtn-demo" onclick="launch(true)" style="margin-top:8px;">Demo Mode — no API key needed</button>
+  </div>
+  <div class="note">
+    Free Polygon key = 15-min delayed quotes · Paid $29/mo = real-time<br>
+    Data goes directly to polygon.io — never stored anywhere else
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+
+  <div class="header">
+    <div class="logo">ORB</div>
+    <div class="h-sym" id="hSym">—</div>
+    <div class="h-price" id="hPrice">—</div>
+    <div class="h-chg" id="hChg"></div>
+    <div class="hspacer"></div>
+    <div class="live-pill"><div class="ldot" id="ldot"></div><span class="ltxt" id="lstat">—</span></div>
+    <div class="clk" id="clk">—</div>
+    <button class="hbtn" onclick="goSetup()">Settings</button>
+  </div>
+
+  <div class="grid">
+
+    <!-- WHAT TO DO — full width -->
+    <div class="card full">
+      <div class="chdr">
+        <span class="ctitle">WHAT TO DO RIGHT NOW</span>
+        <span class="cbadge bd" id="actBadge">—</span>
+      </div>
+      <div class="cbody">
+        <div class="action wait" id="actBox">
+          <div class="albl" id="actLbl">Starting...</div>
+          <div class="atxt" id="actTxt">Loading data...</div>
+        </div>
+        <div class="eguide">
+          <div class="eg">
+            <div class="eg-name" style="color:var(--muted);">Aggressive</div>
+            <div class="eg-desc">Enter the moment zone is tapped. Smallest SL.</div>
+          </div>
+          <div class="eg rec">
+            <div class="eg-name">Conservative ★</div>
+            <div class="eg-desc">Wait for candle to CLOSE outside zone. Best for options.</div>
+          </div>
+          <div class="eg">
+            <div class="eg-name" style="color:var(--muted);">Break Candle</div>
+            <div class="eg-desc">Wait for next candle to break that close. Safest.</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;padding:8px 10px;background:var(--bg2);border-radius:6px;font-size:10px;color:var(--red);">
+          Stop loss always goes on the <b style="color:var(--text);">other side of the ORB box</b>. The market sets your stop — not you.
+        </div>
+      </div>
+    </div>
+
+    <!-- ORB STATUS -->
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">OPENING RANGE</span>
+        <span class="cbadge bd" id="orbBadge">—</span>
+      </div>
+      <div class="cbody">
+        <div class="orbgrid">
+          <div class="obox o15" id="ob15">
+            <div class="otf">15m ORB</div>
+            <div class="orange" id="or15">—</div>
+            <span class="ost sb" id="os15">Build</span>
+          </div>
+          <div class="obox o30" id="ob30">
+            <div class="otf">30m ORB</div>
+            <div class="orange" id="or30">—</div>
+            <span class="ost sb" id="os30">Build</span>
+          </div>
+          <div class="obox o60" id="ob60">
+            <div class="otf">60m ORB</div>
+            <div class="orange" id="or60">—</div>
+            <span class="ost sb" id="os60">Build</span>
+          </div>
+        </div>
+        <div class="drow"><span class="dl">TP target</span><span class="dv" id="rrDisp" style="color:var(--green);">2R</span></div>
+        <div class="drow"><span class="dl">SL rule</span><span class="dv" style="color:var(--red);">Other side of box</span></div>
+        <div class="drow"><span class="dl">Minutes since open</span><span class="dv" id="minsOpen" style="color:var(--muted);">—</span></div>
+      </div>
+    </div>
+
+    <!-- CHAMILLEIA 4-STEP -->
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">CHAMILLEIA 4 STEPS</span>
+        <span class="cbadge bd" id="stepBadge">0 / 4</span>
+      </div>
+      <div class="cbody">
+        <div class="drow">
+          <span class="dl">Step 1 — Trend</span>
+          <span class="dv" id="s1">—</span>
+        </div>
+        <div class="drow">
+          <span class="dl">Step 2 — Break of Structure</span>
+          <span class="dv" id="s2">—</span>
+        </div>
+        <div class="drow">
+          <span class="dl">Step 3 — Zone tap</span>
+          <span class="dv" id="s3">—</span>
+        </div>
+        <div class="drow">
+          <span class="dl">A+ filter (no close in zone)</span>
+          <span class="dv" id="s3ap" style="color:var(--yellow);">—</span>
+        </div>
+        <div class="drow">
+          <span class="dl">Step 4 — Entry ready</span>
+          <span class="dv" id="s4">—</span>
+        </div>
+        <div style="margin-top:8px;padding:8px;background:var(--bg2);border-radius:5px;font-size:10px;color:var(--muted);line-height:1.5;">
+          All 4 steps must be green before you enter. Skip any step = no trade.
+        </div>
+      </div>
+    </div>
+
+    <!-- TREND ALL TF -->
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">TREND — ALL TIMEFRAMES</span>
+        <span class="cbadge bd" id="trendBadge">—</span>
+      </div>
+      <div class="cbody">
+        <div class="tfgrid" id="tfGrid"></div>
+        <div style="margin-top:8px;font-size:10px;color:var(--muted);line-height:1.5;">
+          Trade short TF in same direction as longer TFs. 4+ green = strong bull bias.
+        </div>
+      </div>
+    </div>
+
+    <!-- KEY LEVELS -->
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">KEY LEVELS</span>
+        <span class="cbadge bd" id="lvlBadge">—</span>
+      </div>
+      <div class="cbody">
+        <div class="drow"><span class="dl">Session VWAP</span><span class="dv" id="dvwap">—</span></div>
+        <div class="drow"><span class="dl">Price vs VWAP</span><span class="dv" id="dvwapp">—</span></div>
+        <div class="drow"><span class="dl">Session High</span><span class="dv" id="dsh" style="color:var(--green)">—</span></div>
+        <div class="drow"><span class="dl">Session Low</span><span class="dv" id="dsl" style="color:var(--red)">—</span></div>
+        <div class="drow"><span class="dl">Next resistance ↑</span><span class="dv" id="dnr" style="color:var(--red)">—</span></div>
+        <div class="drow"><span class="dl">Next support ↓</span><span class="dv" id="dns" style="color:var(--green)">—</span></div>
+        <div class="drow"><span class="dl">Volume vs avg</span><span class="dv" id="dvol">—</span></div>
+        <div class="drow"><span class="dl">PDH</span><span class="dv" id="dpdh">—</span></div>
+        <div class="drow"><span class="dl">PDL</span><span class="dv" id="dpdl">—</span></div>
+      </div>
+    </div>
+
+    <!-- ZONE -->
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">SUPPLY & DEMAND ZONE</span>
+        <span class="cbadge bd" id="zoneBadge">No zone</span>
+      </div>
+      <div class="cbody">
+        <div class="drow"><span class="dl">Zone type</span><span class="dv" id="dztype">—</span></div>
+        <div class="drow"><span class="dl">Zone range</span><span class="dv" id="dzrange">—</span></div>
+        <div class="drow"><span class="dl">Zone tapped?</span><span class="dv" id="dztap">—</span></div>
+        <div class="drow"><span class="dl">A+ quality?</span><span class="dv" id="dzap">—</span></div>
+        <div class="drow"><span class="dl">BOS status</span><span class="dv" id="dbos">—</span></div>
+        <div style="margin-top:8px;padding:8px;background:var(--bg2);border-radius:5px;font-size:10px;color:var(--muted);line-height:1.5;">
+          <b style="color:var(--yellow);">A+ rule:</b> Zone is tapped but NO candle body has closed inside it. Highest quality setup.
+        </div>
+      </div>
+    </div>
+
+    <!-- SIGNALS -->
+    <div class="card full">
+      <div class="chdr">
+        <span class="ctitle">SIGNAL LOG</span>
+        <span class="cbadge bd" id="sigBadge">0 signals</span>
+      </div>
+      <div class="cbody">
+        <div class="sigwrap" id="sigList">
+          <div class="nosig">No signals yet — waiting for ORB to build and setup to form</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════
+let apiKey='', sym='TSLA', rr=2, volMult=1.5, pollSec=10;
+let demoMode=false, pollTimer=null, multiTimer=null;
+
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let price=0, prevPrice=0, dayChg=0, dayChgP=0, vol=0;
+let sessH=null, sessL=null, pdh=null, pdl=null;
+let vwapPV=0, vwapV=0, vwapPV2=0, vwapVal=null;
+let volHist=[], lastDay=null;
+
+const orb={
+  15:{h:null,l:null,locked:false,state:0},
+  30:{h:null,l:null,locked:false,state:0},
+  60:{h:null,l:null,locked:false,state:0}
+};
+
+const tfTrend={'1D':'neut','4H':'neut','1H':'neut','30m':'neut','15m':'neut','5m':'neut'};
+
+let zoneTop=null,zoneBot=null,zoneBull=false,zoneSet=false;
+let zoneTapped=false,closedInZone=false,bosBull=false,bosBear=false;
+
+let signals=[];
+
+// ═══════════════════════════════════════
+//  LAUNCH
+// ═══════════════════════════════════════
+function launch(demo){
+  demoMode=demo;
+  if(!demo){
+    apiKey=document.getElementById('apiIn').value.trim();
+    if(!apiKey){alert('Please paste your Polygon.io API key');return;}
+  }
+  sym      = document.getElementById('symIn').value.toUpperCase()||'TSLA';
+  rr       = parseFloat(document.getElementById('rrIn').value)||2;
+  volMult  = parseFloat(document.getElementById('volIn').value)||0;
+  pollSec  = parseInt(document.getElementById('pollIn').value)||10;
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('hSym').textContent=sym;
+  document.getElementById('rrDisp').textContent=rr+'R';
+  if(Notification.permission==='default')Notification.requestPermission();
+  resetSession();
+  buildTFGrid();
+  startClock();
+  fetchAll();
+  pollTimer=setInterval(fetchAll, pollSec*1000);
+  multiTimer=setInterval(fetchMultiTF, 60000);
+  setTimeout(fetchMultiTF, 1500);
+}
+
+function goSetup(){
+  clearInterval(pollTimer);clearInterval(multiTimer);
+  document.getElementById('setup').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+function startClock(){
+  setInterval(()=>{
+    const e=etNow();
+    document.getElementById('clk').textContent=
+      `${p2(e.getHours())}:${p2(e.getMinutes())}:${p2(e.getSeconds())} ET`;
+  },1000);
+}
+const p2=n=>String(n).padStart(2,'0');
+const etNow=()=>new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+const mo=()=>{const e=etNow();return(e.getHours()-9)*60+(e.getMinutes()-30);};
+const etDay=()=>{const e=etNow();return`${e.getFullYear()}-${e.getMonth()}-${e.getDate()}`;};
+const etHHMM=()=>{const e=etNow();return`${p2(e.getHours())}:${p2(e.getMinutes())}`;};
+const inMkt=()=>{const m=mo();return m>=0&&m<390;};
+const fp=n=>n!=null?'$'+n.toFixed(2):'—';
+const setEl=(id,txt,col)=>{const e=document.getElementById(id);if(e){e.textContent=txt;if(col)e.style.color=col;}};
+
+function resetSession(){
+  sessH=null;sessL=null;
+  vwapPV=0;vwapV=0;vwapPV2=0;vwapVal=null;volHist=[];
+  [15,30,60].forEach(t=>orb[t]={h:null,l:null,locked:false,state:0});
+  zoneTop=null;zoneBot=null;zoneSet=false;zoneBull=false;
+  zoneTapped=false;closedInZone=false;bosBull=false;bosBear=false;
+  signals=[];renderSignals();
+}
+
+function setStatus(t,s){
+  document.getElementById('ldot').className='ldot'+(t==='on'?' on':t==='err'?' err':'');
+  document.getElementById('lstat').textContent=s;
+}
+
+// ═══════════════════════════════════════
+//  EMA
+// ═══════════════════════════════════════
+function ema(arr,len){
+  if(!arr||arr.length<len)return null;
+  const k=2/(len+1);
+  let e=arr.slice(0,len).reduce((a,b)=>a+b,0)/len;
+  for(let i=len;i<arr.length;i++)e=arr[i]*k+e*(1-k);
+  return e;
+}
+
+// ═══════════════════════════════════════
+//  FETCH
+// ═══════════════════════════════════════
+async function fetchAll(){
+  if(demoMode){demoTick();return;}
+  try{
+    await fetchQuote(sym);
+    setStatus('on','Live — '+sym);
+  }catch(e){setStatus('err','Error: '+e.message);}
+}
+
+async function fetchQuote(ticker){
+  const r=await fetch(`https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${ticker}?apiKey=${apiKey}`);
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const d=await r.json();
+  const tk=d.ticker;if(!tk)return;
+  const day=tk.day||{},prev=tk.prevDay||{};
+  const lp=tk.lastTrade?.p||tk.lastQuote?.P||day.c||0;
+  const q={last:lp,h:day.h||lp,l:day.l||lp,vol:day.v||0,
+    chg:lp-(prev.c||lp),chgp:prev.c?((lp-prev.c)/prev.c*100):0,
+    prevClose:prev.c||lp};
+  processQuote(q);
+}
+
+const TF_CFG={
+  '1D':{m:1,s:'day'},'4H':{m:4,s:'hour'},'1H':{m:1,s:'hour'},
+  '30m':{m:30,s:'minute'},'15m':{m:15,s:'minute'},'5m':{m:5,s:'minute'}
+};
+
+async function fetchMultiTF(){
+  if(demoMode){
+    Object.keys(tfTrend).forEach(tf=>{
+      const r=Math.random();
+      tfTrend[tf]=r>.5?'bull':r<.3?'bear':'neut';
+    });
+    renderTFGrid();return;
+  }
+  const from=new Date(Date.now()-30*24*60*60*1000).toISOString().split('T')[0];
+  const to=new Date().toISOString().split('T')[0];
+  await Promise.all(Object.entries(TF_CFG).map(async([tf,c])=>{
+    try{
+      const r=await fetch(`https://api.polygon.io/v2/aggs/ticker/${sym}/range/${c.m}/${c.s}/${from}/${to}?adjusted=true&sort=asc&limit=50&apiKey=${apiKey}`);
+      if(!r.ok)return;
+      const d=await r.json();
+      if(!d.results||d.results.length<12)return;
+      const cls=d.results.map(b=>b.c);
+      const last=cls[cls.length-1];
+      const e9=ema(cls,9),e21=ema(cls,21);
+      tfTrend[tf]=e9&&e21?(e9>e21&&last>e9?'bull':e9<e21&&last<e9?'bear':'neut'):'neut';
+    }catch(e){}
+  }));
+  renderTFGrid();
+}
+
+// ═══════════════════════════════════════
+//  PROCESS QUOTE — main symbol
+// ═══════════════════════════════════════
+function processQuote(q){
+  const day=etDay();
+  if(day!==lastDay){
+    // Save previous day H/L as PDH/PDL
+    if(sessH!==null)pdh=sessH;
+    if(sessL!==null)pdl=sessL;
+    lastDay=day;resetSession();
+  }
+  price=q.last;dayChg=q.chg||0;dayChgP=q.chgp||0;vol=q.vol||0;
+  if(sessH===null||q.h>sessH)sessH=q.h;
+  if(sessL===null||q.l<sessL)sessL=q.l;
+
+  // VWAP
+  const typ=(q.h+q.l+price)/3,v=q.vol||1;
+  vwapPV+=typ*v;vwapV+=v;vwapPV2+=typ*typ*v;
+  vwapVal=vwapV>0?vwapPV/vwapV:null;
+
+  // Vol history
+  volHist.push(vol);if(volHist.length>20)volHist.shift();
+  const vAvg=volHist.reduce((a,b)=>a+b,0)/Math.max(volHist.length,1);
+  const vOK=volMult===0||vol>=vAvg*volMult;
+
+  // ORB state machine
+  const mins=mo();
+  [15,30,60].forEach(t=>{
+    const o=orb[t];
+    if(mins<0)return;
+    if(mins<t&&!o.locked){
+      o.h=o.h===null?q.h:Math.max(o.h,q.h);
+      o.l=o.l===null?q.l:Math.min(o.l,q.l);
+    }else if(!o.locked){o.locked=true;if(o.state===0)o.state=1;}
+  });
+  [15,30,60].forEach(t=>{
+    const o=orb[t];
+    if(o.state===1&&o.h!==null&&q.h>=o.l&&q.l<=o.h)o.state=2;
+  });
+
+  // Zone / BOS detection
+  if(sessH!==null&&sessL!==null){
+    if(!bosBull&&price>sessH*1.001){
+      bosBull=true;bosBear=false;
+      zoneTop=q.h;zoneBot=q.l;zoneBull=true;zoneSet=true;
+      zoneTapped=false;closedInZone=false;
+    }
+    if(!bosBear&&price<sessL*0.999){
+      bosBear=true;bosBull=false;
+      zoneTop=q.h;zoneBot=q.l;zoneBull=false;zoneSet=true;
+      zoneTapped=false;closedInZone=false;
+    }
+  }
+  if(zoneSet&&zoneTop!==null){
+    if(zoneBull&&q.l<=zoneTop&&q.l>=zoneBot-(zoneTop-zoneBot)*.5)zoneTapped=true;
+    if(!zoneBull&&q.h>=zoneBot&&q.h<=zoneTop+(zoneTop-zoneBot)*.5)zoneTapped=true;
+    if(price<=zoneTop&&price>=zoneBot)closedInZone=true;
+  }
+
+  // Signal detection
+  if(inMkt()){
+    [15,30,60].forEach(t=>{
+      const o=orb[t];
+      if(o.state!==2||!vOK)return;
+      if(price>o.h){o.state=3;fire('LONG',t,price,o.l);}
+      else if(price<o.l){o.state=3;fire('SHORT',t,price,o.h);}
+    });
+  }
+
+  renderAll(q,vAvg);
+}
+
+// ═══════════════════════════════════════
+//  FIRE SIGNAL
+// ═══════════════════════════════════════
+function fire(dir,tf,entry,sl){
+  const tp=dir==='LONG'?entry+(entry-sl)*rr:entry-(sl-entry)*rr;
+  const risk=Math.abs(entry-sl).toFixed(2);
+  signals.unshift({dir,tf,entry,sl,tp,risk,time:etHHMM()});
+  renderSignals();showToast({dir,tf,entry,sl,tp,risk});
+  if(Notification.permission==='granted')
+    new Notification(`${dir} — ${sym} ${tf}m ORB Tap & Go`,{
+      body:`Entry $${entry.toFixed(2)} | SL $${sl.toFixed(2)} | TP $${tp.toFixed(2)}`
+    });
+  try{
+    const ac=new(window.AudioContext||window.webkitAudioContext)();
+    const os=ac.createOscillator(),gn=ac.createGain();
+    os.connect(gn);gn.connect(ac.destination);
+    os.frequency.value=dir==='LONG'?880:440;
+    gn.gain.setValueAtTime(0.2,ac.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+.5);
+    os.start();os.stop(ac.currentTime+.5);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════
+//  RENDER ALL
+// ═══════════════════════════════════════
+function renderAll(q,vAvg){
+  // Header
+  const pe=document.getElementById('hPrice');
+  pe.textContent=fp(price);
+  pe.className='h-price'+(price>prevPrice?' up':price<prevPrice?' dn':'');
+  prevPrice=price;
+  const ce=document.getElementById('hChg');
+  const sg=dayChg>=0?'+':'';
+  ce.textContent=`${sg}${dayChg.toFixed(2)} (${sg}${dayChgP.toFixed(2)}%)`;
+  ce.className='h-chg'+(dayChg>=0?' up':' dn');
+  setEl('minsOpen', mo()<0?'Pre-market':mo()+'m','');
+
+  // ORB boxes
+  const stL=['Build','Wait for tap','TAPPED!','Fired'];
+  const stC=['sb','sw','st','sf'];
+  [15,30,60].forEach(t=>{
+    const o=orb[t];
+    if(o.h!==null)setEl('or'+t,`$${o.h.toFixed(2)} / $${o.l.toFixed(2)}`);
+    const s=document.getElementById('os'+t);
+    if(s){s.textContent=stL[o.state];s.className='ost '+stC[o.state];}
+    const box=document.getElementById('ob'+t);
+    if(box){
+      box.className='obox o'+t;
+      if(o.state===3){const ls=signals.find(s=>s.tf===t);if(ls)box.classList.add(ls.dir==='LONG'?'bull':'bear');}
+      else if(o.state===2)box.classList.add('tapped');
+    }
+  });
+  const anyB=signals.some(s=>s.dir==='LONG'),anyS=signals.some(s=>s.dir==='SHORT');
+  const ob=document.getElementById('orbBadge');
+  if(anyB){ob.textContent='BULL BREAK';ob.className='cbadge bg';}
+  else if(anyS){ob.textContent='BEAR BREAK';ob.className='cbadge br';}
+  else{ob.textContent='Watching';ob.className='cbadge bd';}
+
+  // Chamilleia steps
+  const trendBull = vwapVal&&price>vwapVal&&price>prevPrice;
+  const trendBear = vwapVal&&price<vwapVal&&price<prevPrice;
+  const step1 = trendBull||trendBear;
+  const step2 = bosBull||bosBear;
+  const step3 = zoneSet&&zoneTapped;
+  const step4 = step3&&(signals.length>0||(zoneSet&&zoneTapped&&!closedInZone));
+  let sc=0;
+  if(step1)sc++;if(step2)sc++;if(step3)sc++;if(step4)sc++;
+  const sb=document.getElementById('stepBadge');
+  sb.textContent=sc+' / 4';
+  sb.className='cbadge '+(sc===4?'bg':sc>=2?'bc':'bd');
+  setEl('s1',step1?(trendBull?'BULL trend':'BEAR trend'):'No clear trend',step1?(trendBull?'var(--green)':'var(--red)'):'var(--muted)');
+  setEl('s2',step2?(bosBull?'Bull BOS fired':'Bear BOS fired'):'Waiting for BOS',step2?'var(--green)':'var(--muted)');
+  setEl('s3',!step2?'Wait for BOS first':zoneTapped?'Zone tapped':'Wait for tap',step3?'var(--green)':step2?'var(--yellow)':'var(--muted)');
+  setEl('s3ap',!zoneSet?'—':closedInZone?'No — candle closed inside':'YES — A+ clean zone',closedInZone?'var(--yellow)':zoneSet?'var(--green)':'var(--muted)');
+  setEl('s4',!step3?'Complete steps 1-3 first':signals.length>0?'Signal fired':'Ready — watch for entry',step4?'var(--green)':'var(--muted)');
+
+  // Key levels
+  setEl('dvwap',fp(vwapVal));
+  if(vwapVal){setEl('dvwappos',price>vwapVal?'Above VWAP':'Below VWAP',price>vwapVal?'var(--green)':'var(--red)');}
+  setEl('dsh',fp(sessH));setEl('dsl',fp(sessL));
+  const rUp=Math.ceil(price),sDn=Math.floor(price);
+  setEl('dnr',`$${rUp}  (+${(rUp-price).toFixed(2)})`);
+  setEl('dns',`$${sDn}  (-${(price-sDn).toFixed(2)})`);
+  const vr=vAvg>0?(vol/vAvg).toFixed(2)+'x':'—';
+  const ve=document.getElementById('dvol');
+  if(ve){ve.textContent=vr;ve.style.color=vAvg>0&&vol>=vAvg*1.5?'var(--yellow)':'var(--muted)';}
+  setEl('dpdh',fp(pdh));setEl('dpdl',fp(pdl));
+  const lb=document.getElementById('lvlBadge');
+  if(vwapVal){lb.textContent=price>vwapVal?'Above VWAP':'Below VWAP';lb.className='cbadge '+(price>vwapVal?'bg':'br');}
+
+  // Zone
+  const zb=document.getElementById('zoneBadge');
+  if(zoneSet){
+    zb.textContent=zoneBull?'Demand':'Supply';
+    zb.className='cbadge '+(zoneBull?'bg':'br');
+    setEl('dztype',zoneBull?'DEMAND — buy area':'SUPPLY — sell area',zoneBull?'var(--green)':'var(--red)');
+    setEl('dzrange',zoneTop?`$${zoneTop.toFixed(2)} / $${zoneBot.toFixed(2)}`:'—');
+    setEl('dztap',zoneTapped?'Yes — tapped':'No — wait for tap',zoneTapped?'var(--green)':'var(--yellow)');
+    setEl('dzap',!zoneTapped?'Wait for tap':closedInZone?'No — B setup':'YES — A+ clean',closedInZone?'var(--yellow)':zoneTapped?'var(--green)':'var(--muted)');
+  }else{
+    zb.textContent='No zone';zb.className='cbadge bd';
+    ['dztype','dzrange','dztap','dzap'].forEach(id=>setEl(id,'—'));
+  }
+  setEl('dbos',bosBull?'Bull BOS fired':bosBear?'Bear BOS fired':'Waiting',bosBull?'var(--green)':bosBear?'var(--red)':'var(--muted)');
+
+  // Action
+  renderAction(sc);
+}
+
+function renderAction(sc){
+  const mins=mo();
+  let cls='wait',lbl,txt;
+  if(mins<0){cls='wait';lbl='PRE-MARKET';txt='Market opens 9:30 ET. Set your watchlist and prepare zones.';}
+  else if(mins<15){cls='wait';lbl='BUILDING ORB';txt='First 15 minutes build the Opening Range box. Watch only. No trades until ORB locks at 9:45.';}
+  else if(!bosBull&&!bosBear){cls='wait';lbl='WAIT — NO BOS YET';txt='ORB is set. Now wait for a Break of Structure — a strong candle that pushes through a recent swing high (bull) or low (bear). No BOS means no trade setup.';}
+  else if(!zoneSet){cls='watch';lbl='BOS FIRED — WATCH ZONE';txt='Break of Structure happened. The demand or supply zone is now marked. Wait for price to pull back to it.';}
+  else if(!zoneTapped){cls='watch';lbl='WAIT FOR ZONE TAP';txt='Zone is active. Do not chase. Wait for price to come back and TOUCH the zone. That is your train stop — the market picking you up.';}
+  else if(zoneTapped&&closedInZone){cls='wait';lbl='B SETUP';txt='Zone tapped but a candle closed inside it. Not A+. You can still trade but use smaller size. Consider waiting for the next clean zone.';}
+  else if(zoneTapped&&!closedInZone){cls='go';lbl='A+ SETUP — ENTER READY';txt='All conditions met. Zone is tapped and clean. Use Conservative entry: wait for the 5m candle to CLOSE outside zone then enter. Stop loss = other side of the ORB box.';}
+  else if(!inMkt()){cls='stop';lbl='MARKET CLOSED';txt='No more trades today. Review the day.';}
+  else{cls='wait';lbl='WATCHING';txt='No clear setup right now. Sit on hands. A no-trade day is a winning day — Chamilleia.';}
+  const box=document.getElementById('actBox');
+  box.className='action '+cls;
+  setEl('actLbl',lbl);setEl('actTxt',txt);
+  const b=document.getElementById('actBadge');
+  b.textContent=lbl;
+  b.className='cbadge '+{go:'bg',watch:'bc',stop:'br',wait:'by'}[cls];
+}
+
+// ═══════════════════════════════════════
+//  TF GRID
+// ═══════════════════════════════════════
+function buildTFGrid(){
+  const el=document.getElementById('tfGrid');
+  el.innerHTML=Object.keys(tfTrend).map(tf=>`
+    <div class="tfc neut" id="tfc${tf.replace(/\W/g,'')}">
+      <div class="tflbl">${tf}</div>
+      <div class="tfv" id="tfv${tf.replace(/\W/g,'')}">—</div>
+    </div>`).join('');
+}
+
+function renderTFGrid(){
+  let bull=0,bear=0;
+  Object.entries(tfTrend).forEach(([tf,t])=>{
+    const id=tf.replace(/\W/g,'');
+    const c=document.getElementById('tfc'+id);
+    const v=document.getElementById('tfv'+id);
+    if(!c)return;
+    c.className='tfc '+t;
+    v.textContent=t==='bull'?'BULL':t==='bear'?'BEAR':'NEUT';
+    if(t==='bull')bull++;if(t==='bear')bear++;
+  });
+  const tb=document.getElementById('trendBadge');
+  if(bull>=4){tb.textContent='Strong Bull '+bull+'/6';tb.className='cbadge bg';}
+  else if(bear>=4){tb.textContent='Strong Bear '+bear+'/6';tb.className='cbadge br';}
+  else if(bull>bear){tb.textContent='Lean Bull '+bull+'/6';tb.className='cbadge bc';}
+  else if(bear>bull){tb.textContent='Lean Bear '+bear+'/6';tb.className='cbadge br';}
+  else{tb.textContent='Mixed';tb.className='cbadge bd';}
+}
+
+// ═══════════════════════════════════════
+//  SIGNALS
+// ═══════════════════════════════════════
+function renderSignals(){
+  const el=document.getElementById('sigList');
+  setEl('sigBadge',signals.length+' signal'+(signals.length!==1?'s':''));
+  if(!signals.length){el.innerHTML='<div class="nosig">No signals yet</div>';return;}
+  el.innerHTML=signals.slice(0,15).map(s=>`
+    <div class="sitem ${s.dir.toLowerCase()}">
+      <div class="sdir ${s.dir.toLowerCase()}">${s.dir==='LONG'?'▲':'▼'} ${s.dir}</div>
+      <div class="sinf">
+        <b>${s.tf}m ORB</b> &nbsp;
+        Entry:<b>$${s.entry.toFixed(2)}</b> &nbsp;
+        SL:<b>$${s.sl.toFixed(2)}</b> &nbsp;
+        TP:<b>$${s.tp.toFixed(2)}</b> &nbsp;
+        Risk:$${s.risk}
+      </div>
+      <div class="st2">${s.time}</div>
+    </div>`).join('');
+}
+
+function showToast(s){
+  const c=document.getElementById('toasts'),d=document.createElement('div');
+  d.className=`toast ${s.dir.toLowerCase()}`;
+  d.innerHTML=`<div class="ttitle">${s.dir==='LONG'?'▲ LONG':'▼ SHORT'} — ${sym} ${s.tf}m ORB</div>
+    <div class="tbody">Entry:<b>$${s.entry.toFixed(2)}</b> SL:<b>$${s.sl.toFixed(2)}</b> TP:<b>$${s.tp.toFixed(2)}</b></div>`;
+  c.appendChild(d);setTimeout(()=>d.remove(),12000);
+}
+
+// ═══════════════════════════════════════
+//  DEMO
+// ═══════════════════════════════════════
+let dp=418.5,dO=null,dH=null,dL=null;
+function demoTick(){
+  const mins=mo();
+  if(mins<0)return;
+  if(!dO||mins===0){dO=dp;dH=null;dL=null;}
+  dp=Math.max(390,Math.min(450,dp+(Math.random()-.47)*.45));
+  dH=dH===null?dp+Math.random()*1.5:Math.max(dH,dp);
+  dL=dL===null?dp-Math.random()*1.5:Math.min(dL,dp);
+  processQuote({
+    last:parseFloat(dp.toFixed(2)),
+    h:parseFloat((dH||dp+1).toFixed(2)),
+    l:parseFloat((dL||dp-1).toFixed(2)),
+    vol:Math.floor(500000+Math.random()*600000),
+    chg:parseFloat((dp-dO).toFixed(2)),
+    chgp:parseFloat(((dp-dO)/dO*100).toFixed(2))
+  });
+  setStatus('on','Demo — '+sym);
+}
+</script>
+</body>
+</html>
